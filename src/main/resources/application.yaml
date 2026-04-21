@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: ziprace
+  datasource:
+    url: jdbc:sqlite:./data/ziprace.db?journal_mode=WAL&synchronous=NORMAL&cache_size=-64000&temp_store=MEMORY
+    driver-class-name: org.sqlite.JDBC
+    hikari:
+      maximum-pool-size: 1
+  sql:
+    init:
+      mode: always
