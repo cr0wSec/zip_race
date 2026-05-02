@@ -16,6 +16,18 @@ public class FileEntryRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    /**
+     * Bulk-inserts file entries for a given batch using JDBC batch updates.
+     * <p>
+     * Returns the number of statements executed (= rows attempted), not the sum
+     * of affected rows. For simple INSERTs where each statement affects 1 row,
+     * the caller can compare this value to {@code entries.size()} to verify
+     * integrity.
+     *
+     * @param batchId UUID of the parent batch
+     * @param entries file entries to insert
+     * @return number of statements executed
+     */
     public int insertAll(UUID batchId, List<FileEntry> entries) {
         String insertQuery = "INSERT INTO file_entry(batch_id, filename, file_size) VALUES (?,?,?)";
 

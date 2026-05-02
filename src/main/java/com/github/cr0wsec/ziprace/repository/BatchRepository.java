@@ -10,6 +10,10 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Persistence operations for {@link UploadBatch} state. State transitions
+ * are exposed as separate methods to prevent illegal status updates.
+ */
 @Repository
 public class BatchRepository {
 
@@ -19,7 +23,11 @@ public class BatchRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public void save(UploadBatch batch) {
+    /**
+     * Persists a new batch in PENDING state. Only id, total_files, and created_at
+     * from the parameter are written. Other fields use database defaults.
+     */
+    public void saveAsPending(UploadBatch batch) {
         jdbcTemplate.update(
                 "INSERT INTO upload_batch (id, total_files, created_at) VALUES (?, ?, ?)",
                 batch.id().toString(), batch.totalFiles(), batch.createdAt().toEpochMilli()
@@ -54,6 +62,13 @@ public class BatchRepository {
         );
     }
 
+    /**
+     * Retrieves a batch by its UUID.
+     *
+     * @param id batch identifier
+     * @return the batch if found, or {@code Optional.empty()} if no row matches.
+     *         Never returns {@code null}.
+     */
     public Optional<UploadBatch> findById(UUID id) {
         try {
             UploadBatch batch = jdbcTemplate.queryForObject(
