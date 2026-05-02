@@ -11,6 +11,4 @@ public record UploadBatch(
     String errorMessage,
     Instant createdAt,
     Instant completedAt
-) {
-
-}
+) {}
