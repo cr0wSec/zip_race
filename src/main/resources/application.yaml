@@ -9,7 +9,20 @@ spring:
   sql:
     init:
       mode: always
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
 
 ziprace:
   queue:
     capacity: 1000
+  writer:
+    shutdown-timeout-ms: 5000
+  upload:
+    max-size-bytes: 104857600  # 100 MB
+
+server:
+  tomcat:
+    max-swallow-size: 100MB
+    max-http-form-post-size: 100MB
