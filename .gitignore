@@ -33,6 +33,6 @@ build/
 .vscode/
 
 ## Database ##
-data/ziprace.db
+data/*
 
 
