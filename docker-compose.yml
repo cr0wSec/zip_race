@@ -1,0 +1,59 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ziprace:latest
+    container_name: ziprace-app # Can't scale service with many instance - two containers would have same name
+    ports:
+      - "8080:8080"
+    volumes:
+      # Named volume so the SQLite file survives container removal. Better perfs than bind mounts, and isolation.
+      - ziprace-data:/app/data
+    networks:
+      - ziprace-net
+    restart: unless-stopped
+    healthcheck: # -f: fail if 4XX/5XX -> else returns 0, -s: silent, -S: show errors
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 15s
+
+  # Bench container. Run with the 'bench' profile so it does not start
+  # by default with "docker compose up". Trigger explicitly:
+  #   docker compose --profile bench run --rm gatling
+  gatling:
+    build:
+      context: .
+      dockerfile: Dockerfile.gatling
+    image: ziprace-gatling:latest
+    container_name: ziprace-gatling
+    profiles: ["bench"]
+    depends_on:
+      app:
+        condition: service_healthy
+    networks:
+      - ziprace-net
+    volumes:
+      # Bind mount to persist Gatling reports on the host so you can browse them after the run. WORKDIR is /bench.
+      - ./gatling-reports:/bench/target/gatling
+    environment:
+      # Default bench parameters — override via:
+      #   docker compose --profile bench run --rm \
+      #     -e ZIPRACE_USERS=5000 gatling
+      # Used in run-bench.sh
+      ZIPRACE_TARGET_URL: "http://app:8080"
+      ZIPRACE_USERS: "1000"
+    # ./mvnw -B gatling:test -Dziprace.target.url=http://app:8080 -Dziprace.users=1000 (-B: no user input mode)
+    command:
+      - "-Dziprace.target.url=${ZIPRACE_TARGET_URL:-http://app:8080}"
+      - "-Dziprace.users=${ZIPRACE_USERS:-1000}"
+
+volumes:
+  ziprace-data:
+    name: ziprace-data
+
+networks:
+  ziprace-net:
+    driver: bridge

@@ -1,0 +1,23 @@
+# Container that runs Gatling simulations against the app.
+# Re-uses the project's own pom.xml to keep simulations and dependencies aligned.
+# noble uses glibc -> good for sqlite-jdbc
+FROM eclipse-temurin:25-jdk-noble
+
+WORKDIR /bench
+
+# Copy only the Maven descriptor first to leverage Docker layer caching:
+# dependencies are re-downloaded only if pom.xml changes, not on every code change.
+COPY pom.xml .
+COPY .mvn .mvn
+COPY mvnw .
+
+# Pre-fetch dependencies (Gatling plugin and its transitive deps).
+# -B: batch mode, no user prompt. -q: quiet. Note: hide INFO logs
+RUN ./mvnw -B -q dependency:go-offline
+
+# Copy the simulation sources and the test fixtures (zip files).
+COPY src ./src
+
+# Default command: run the Gatling simulation. Parameters can be overridden
+# via -Dziprace.target.url=... and -Dziprace.users=... at runtime.
+ENTRYPOINT ["./mvnw", "-B", "gatling:test"]

@@ -1,0 +1,33 @@
+# Build outputs
+target/
+*.iml
+
+# Local data
+data/
+*.db
+*.db-shm
+*.db-wal
+
+# Gatling reports
+gatling-reports/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Git
+.git/
+.gitignore
+
+# Documentation (not needed in image)
+*.md
+
+# Docker files themselves (avoid recursion)
+Dockerfile*
+docker-compose.yml
+.dockerignore
+
+# OS
+.DS_Store
+Thumbs.db
