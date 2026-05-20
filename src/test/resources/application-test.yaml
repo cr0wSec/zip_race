@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    # In-memory SQLite. Each test run starts with an empty DB and leaves
+    # nothing behind — no risk of polluting the dev DB at ./data/ziprace.db.
+    url: jdbc:sqlite::memory:?foreign_keys=ON
+    driver-class-name: org.sqlite.JDBC
+    hikari:
+      maximum-pool-size: 1
+  sql:
+    init:
+      mode: always
+
+ziprace:
+  queue:
+    capacity: 100
+  writer:
+    shutdown-timeout-ms: 1000
+  upload:
+    max-size-bytes: 10485760  # 10 MB — smaller than prod, avoids accidental large-file tests
