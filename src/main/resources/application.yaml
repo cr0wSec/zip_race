@@ -2,17 +2,13 @@ spring:
   application:
     name: ziprace
   datasource:
-    url: jdbc:sqlite:./data/ziprace.db?journal_mode=WAL&synchronous=NORMAL&cache_size=-64000&temp_store=MEMORY
+    url: jdbc:sqlite:./data/ziprace.db?journal_mode=WAL&synchronous=NORMAL&cache_size=-64000&foreign_keys=ON
     driver-class-name: org.sqlite.JDBC
     hikari:
       maximum-pool-size: 1
   sql:
     init:
       mode: always
-  servlet:
-    multipart:
-      max-file-size: 100MB
-      max-request-size: 100MB
 
 ziprace:
   queue:
@@ -21,9 +17,9 @@ ziprace:
     shutdown-timeout-ms: 5000
   upload:
     max-size-bytes: 104857600  # 100 MB
+    max-entries-per-zip: 1000
 
 server:
   tomcat:
     max-swallow-size: 100MB
-    max-http-form-post-size: 100MB
     accept-count: 1024
