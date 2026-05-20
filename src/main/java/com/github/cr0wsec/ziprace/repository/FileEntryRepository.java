@@ -41,6 +41,9 @@ public class FileEntryRepository {
 
         int[] result = jdbcTemplate.batchUpdate(insertQuery, batchArgs);
 
+        // Returning result.length is sufficient for SQLite — failures throw rather than
+        // return Statement.EXECUTE_FAILED (-3). A stricter implementation would iterate
+        // and skip negative codes, but it's premature for this driver.
         return result.length;
     }
 

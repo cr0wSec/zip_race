@@ -109,8 +109,7 @@ public class DatabaseWriter {
      * <p>
      * <strong>Note:</strong> these three operations are not wrapped in a single
      * transaction. If the JVM crashes between {@code insertAll} and the final mark,
-     * the batch row stays in {@code PROCESSING} forever — see
-     * {@code Known Limitations} in the README. The trade-off is intentional for
+     * the batch row stays in {@code PROCESSING} forever. The trade-off is intentional for
      * this POC; production would wrap the body in {@code @Transactional}.
      * <p>
      * Visibility is package-private rather than private to allow direct

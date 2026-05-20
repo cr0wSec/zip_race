@@ -9,6 +9,7 @@ import com.github.cr0wsec.ziprace.model.UploadBatch;
 import com.github.cr0wsec.ziprace.repository.BatchRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -34,16 +35,18 @@ import java.util.zip.ZipInputStream;
 public class UploadService {
 
     private static final Logger log = LoggerFactory.getLogger(UploadService.class);
-    private static final int MAX_ENTRIES_PER_ZIP = 10_000;
+    private final int maxEntriesPerZip;
 
     private final BatchRepository batchRepository;
     private final BlockingQueue<WriteTask> writeQueue;
 
     public UploadService(
             BatchRepository batchRepository,
-            BlockingQueue<WriteTask> writeQueue) {
+            BlockingQueue<WriteTask> writeQueue,
+            @Value("${ziprace.upload.max-entries-per-zip:1000}") int maxEntriesPerZip) {
         this.batchRepository = batchRepository;
         this.writeQueue = writeQueue;
+        this.maxEntriesPerZip = maxEntriesPerZip;
     }
 
 
@@ -85,9 +88,9 @@ public class UploadService {
      * @throws EmptyZipException        if the zip contains no file entries
      * @throws ZipProcessingException   if the stream cannot be read as a valid zip
      */
-    private static List<FileEntry> parseZipEntries(InputStream zipStream, UUID batchId) {
+    private List<FileEntry> parseZipEntries(InputStream zipStream, UUID batchId) {
 
-        List<FileEntry> entries = new ArrayList<>(5000); //TODO: Add a parameter in application YAML
+        List<FileEntry> entries = new ArrayList<>();
 
         try (ZipInputStream zis = new ZipInputStream(zipStream)) {
 
@@ -98,8 +101,8 @@ public class UploadService {
                     continue;
                 }
 
-                if (entries.size() >= MAX_ENTRIES_PER_ZIP) {
-                    throw new TooManyZipEntriesException("Upload failed, too many entries in zip (max " + MAX_ENTRIES_PER_ZIP + ")");
+                if (entries.size() >= maxEntriesPerZip) {
+                    throw new TooManyZipEntriesException("Upload failed, too many entries in zip (max " + maxEntriesPerZip + ")");
                 }
 
                 if (entry.getName().contains("..")
@@ -111,7 +114,7 @@ public class UploadService {
                 // Compute the actual size by reading the entry content
                 long actualSize = zis.transferTo(OutputStream.nullOutputStream());
 
-                entries.add(new FileEntry(0, batchId, entry.getName(), actualSize));
+                entries.add(new FileEntry(batchId, entry.getName(), actualSize));
             }
         } catch  (IOException e) {
             throw new ZipProcessingException(e.getMessage(), e);
@@ -120,7 +123,6 @@ public class UploadService {
         if (entries.isEmpty()) {
             throw new EmptyZipException("Upload failed, zip doesn't contain any file");
         }
-
 
         return entries;
     }

@@ -74,8 +74,8 @@ public class BatchRepository {
             UploadBatch batch = jdbcTemplate.queryForObject(
                     "SELECT id, status, total_files, processed_files, error_message, created_at, completed_at FROM upload_batch WHERE id = ?",
                     (rs, rowNum) -> {
-                        Long completedMs = rs.getObject("completed_at", Long.class);
-                        Instant completedAt = (completedMs == null) ? null : Instant.ofEpochMilli(completedMs);
+                        long completedMs = rs.getLong("completed_at");
+                        Instant completedAt = rs.wasNull() ? null : Instant.ofEpochMilli(completedMs);
 
                         return new UploadBatch(
                             UUID.fromString(rs.getString("id")),
