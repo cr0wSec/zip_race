@@ -15,5 +15,3 @@ CREATE TABLE IF NOT EXISTS file_entry (
                             filename  TEXT NOT NULL,
                             file_size INTEGER NOT NULL
 );
-
-CREATE INDEX IF NOT EXISTS idx_file_entry_batch ON file_entry(batch_id);
